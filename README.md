@@ -15,14 +15,17 @@ To forecast the clubs financial status in the future.
 
 ## Installation
 
-To install haxkohle, run the flollowing commands in your `Bash`-compatible shell.
+To install haxkohle, run the flollowing commands in your `Bash`-compatible shell. For the following commands to work we assume that the following packages are installed:
+
+- python (version 3)
+- pip
 
 ```sh
 git clone https://github.com/haxko/haxkohle
 cd haxkohle
 
-virtualenv .venv
-source .venv/bin/activate
+python3 -m venv .env
+source .env/bin/activate
 pip install -r requirements.txt
 
 npm install
