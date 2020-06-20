@@ -1,0 +1,19 @@
+{% load crispy_forms_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang='de'>
+  <head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Login</title>
+    <script src='{% static "bundle.js" %} '></script>
+  </head>
+  <body id="login">
+    <form method="post" >
+      {% csrf_token %}
+      {{ form|crispy }}
+      <input type="submit" class="btn btn-primary">
+    </form>
+      {% debug %}
+  </body>
+</html>
