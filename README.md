@@ -1,10 +1,12 @@
 # haxkohle
 
-Haxkohle is the a tool for clubs to manage their financial transactions.
-Its main purpose is to provide a dashboard for every clubmember providing them information about already paid and still pending membershipfees.
-It provides some management functionality for authorized members to give them insights into missing transactions.
-Additionally another planning component is planned. Its purpose is to plan transactions and in particular recurrent transactions.
-To forecast the clubs financial status in the future.
+Haxkohle is a tool for associations to manage their financial operations.
+Its main purpose is to provide a dashboard for each member, giving them information on membership fees already paid and outstanding.
+
+It provides some management functions for authorized members to give them insight into outstanding membership fees.
+
+In addition, a further planning component is planned. Its purpose is to plan transactions and especially recurring transactions.
+To forecast the financial status of the club in the future.
 
 ## Table of Contents
 
@@ -41,7 +43,7 @@ The project is currently in a early development state. Therefore production usag
 
 ## Support
 
-Please [open an issue](https://github.com/fraction/readme-boilerplate/issues/new) for support.
+Please [open an issue](https://github.com/haxko/haxkohle/issues/new) for support.
 
 ## Contributing
 
