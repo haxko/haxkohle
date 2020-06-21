@@ -1,82 +1,73 @@
 from django.db import models
 from django.contrib.auth import User
 from xmltodict import parse as parsexml
-import abc
-
-
-# ToDo: Replace ValueStore with a Transaction_History
-class ValueStore(models.Model):
-    key = models.CharField(max_length=128)
-    value = models.TextField()
-
-    def getValue(key):
-        return self.objects.get(key=key).first()
-
-    def setValue(key, value):
-        self.objects.create(key=key, value=value)
+from functools import reduce
 
 class BankAccount(models.Model):
+    """
+    A BankAccount is identified by its iban and bic.
+    It has one owner and can be linked to a user, which can have multiple bank accounts.
+    """
     owner = models.CharField(max_length=50)
     iban = models.CharField(max_length=32)
     bic = models.CharField(max_length=11)
     member = models.ForeignKey(User, blank=True, null=True)
 
 class BankTransaction(models.Model):
+    """
+    BankTransaction represents a single transaction.
+    """
     amount = models.DecimalField(max_digits=11, decimal_places=2)
+    start_balance = models.DecimalField(max_digits=11, decimal_places=2)
+    end_balance = models.DecimalField(max_digits=11, decimal_places=2)
     currency = models.CharField(max_length=3)
-    status = models.CharField(max_length=4)
-    value_date = models.DateTimeField()
     booking_date = models.DateTimeField()
     details = models.TextField()
     contact_account = models.ForeignKey(BankAccount)
     member = models.ForeignKey(User, blank=True, null=True)
     visible = models.BooleanField(default=True)
 
-class BankDataDocument(models.Model):
-    __metaclass__ = abc.ABCMeta
 
-    upload_date = models.DateTimeField()
-    reference_date = models.DateTimeField()
-    document = models.FileField(lambda _, filename: f"bdd/{filename}")
+class CamtDocument:
+    """
+    The CamtDocument is just a factory to import camt-files.
+    It validates data and creates BankAccount and BankTransaction objects.
+    The CamtDocument is not saved to the database.
+    """
 
-    @abc.abstractmethod
-    def get_transactions(self):
-        """Returns a list of transactions"""
-        return
+    def __init__(self, camt_document, *args, **kwargs):
+        with open(camt_document, 'r') as camt:
+            data = parsexml(camt.read())['Document']['BkToCstmrAcctRpt']['Rpt']
+            self.balance = self.__parse_balance(data['Bal'])
+            self.transactions_old, self.transactions_new = self.__process_transactions(data['Ntry'])
+            self.amount = reduce(lambda t1, t2: t1.amount + t2.amount, self.transactions_new + self.transactions_old, 0)
+            assert self.balance['start'] + self.amount == self.balance['end'], 'The closing balance does not match the start balance plus transaction amount'
 
-    @abc.abstractmethod
-    def is_valid(self):
+    def has_importable_data(self):
+        return len(self.transactions['new']) != 0
+
+    def matches_current_balance(self):
+        return BankTransaction.objects.order_by('id')[0].balance['end'] == self.balance['start']
+            or BankTransaction.objects.count() == 0
+
+    def import(self):
+        assert self.matches_current_balance(), "The camt document can not be imported, its balance does not match the database"
+
+        for transaction in self.transactions_new:
+            transaction.save()
+
+        return len(self.transactions_new)
+
+    def __get__(self, key):
+        if key == "transactions":
+            return self.transactions_old + self.transactions_new
+        raise KeyError(f"The parameter {key} does not exist.")
+
+    def __parse_balance(self, balances):
         """
-        Checks if the document is valid and checks wether the bank account
-        has a valid state before and after the transactions are imported.
+        Returns the start balance and the end balance of the document.
         """
-        return
-
-    def save(self, *args, **kwargs):
-        """ Prevents the Document from beeing saved. But saves the children instead. """
-        for transaction in self.get_transactions():
-            if self.is_valid() and transaction.is_valid():
-
-                ValueStore.set('last_account_balance', )
-                transaction.save(*args, **kwargs)
-            else:
-                transaction.delete()
-
-    class Meta:
-        abstract = True
-
-class CamtDocument(BankDataDocument):
-
-    def parse_document(self):
-        if self.data is None:
-            with self.document.open('r') as camt:
-                self.data = parsexml(camt.read())['Document']['BkToCstmrAcctRpt']['Rpt']
-        return self.data
-
-    def is_valid(self):
-        transactions = self.get_transactions()
-        transaction_amount = transactions().reduce(lambda t1, t2: t1.amount + t2.amount)
-        for balance in self.parse_data()['Bal']:
+        for balance in balances:
             status = balance['Tp']['CdOrPrtry']['Cd']
 
             if status in ['‘PRCD’', 'OPBD']:
@@ -86,14 +77,16 @@ class CamtDocument(BankDataDocument):
                 end_balance = balance['Amt']['#text']
                 end_currency = balance['Amt']['@Ccy']
 
-        if ValueStore.objects.get('last_account_balance').first() == start_balance: return False
-        if start_balance + transaction_amount == end_balance: return False
+        assert start_currency == end_currency, "The balance currencies do not match each other"
 
-        return True
+        return {'start': start_balance, 'end': end_balance, 'currency': end_currency }
 
-    def get_transactions(self):
-        # Seperated in subfunction - may be useful for later cacheing.
-        def get_or_create_transaction_from_ntry(ntry):
+    def __process_transactions(self, entries):
+        """
+        Returns lists for old and new of transaction objects.
+        """
+
+        def get_or_create_transaction_from_entry(ntry, amount_offset):
             bank_account, _ = BankAccount.objects.get_or_create(
                 iban = ntry['CdtrAcct']['Id']['IBAN'],
                 bic  = ntry['NtryDtls']['TxDtls']['RltdAgts']['CdtrAgt']['FinInstnId']['BIC'],
@@ -101,21 +94,25 @@ class CamtDocument(BankDataDocument):
             )
 
             sign = '-' if ntry['CdtDbtInd'] == 'DBIT' else ''
-            transaction, _ = BankTransaction.objects.get_or_create(
-                amount = float(sign + ntry['Amt']['#text'].strip()),
-                currency =  ntry['Amt']['@Ccy'].strip(),
-                booking_date = ntry['BookDt']['Dt'].strip(),
-                details = re.sub(r"\s+", " ", ntry['NtryDtls']['TxDtls']['RmtInf']['Ustrd'].strip().replace("\n", " ")),
-                contact_account = account,
-                defaults = {
-                    'status': ntry['Sts'].lower(),
-                    'value_date': ntry['ValDt']['Dt'],
-                    'contact_account': account,
-                }
-            )
-            return transaction
 
-        transactions = []
-        for ntry in self.parse_document()['Ntry']:
-            transactions.append(get_transaction_from_ntry(ntry, self))
-        return transactions
+            fixed_transaction_details = {
+                'amount': float(sign + ntry['Amt']['#text'].strip()),
+                'currency':  ntry['Amt']['@Ccy'].strip(),
+                'booking_date': ntry['BookDt']['Dt'].strip(),
+                'details': re.sub(r"\s+", " ", ntry['NtryDtls']['TxDtls']['RmtInf']['Ustrd'].strip().replace("\n", " ")),
+                'contact_account': bank_account,
+            }
+
+            modifiable_transaction_details = {}
+
+            try:
+                return BankTransaction.get(**fixed_transaction_details), False
+            except self.model.DoesNotExist:
+                return BankTransaction(**fixed_transaction_details, **modifiable_transaction_details), True
+
+        transactions = { 'new': [], 'old': [] }
+        for entry in entries:
+            transaction, created = get_transaction_from_ntry(entry)
+            transactions['new' if created else 'old'].append(get_transaction_from_ntry(ntry, self))
+        return transactions['old'], transactions['new']
+
