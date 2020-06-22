@@ -3,6 +3,8 @@
 node_modules/
 static/bundle.js
 
+# ToDo: Delete on first release
+*/migrations/*
 
 # Django #
 *.log
