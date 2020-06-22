@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth import User
+from django.contrib.auth.models import User
 from xmltodict import parse as parsexml
 from functools import reduce
 from django.db.models.signals import post_save
@@ -20,11 +20,11 @@ class Member(User):
         if key in subscription_attributes + ['current_subscription']:
             for subscription in self.subscription_set:
                 if subscription.begin_date > timezone.now(): return
-                if subscription.end_data < timezone.now(): return
+                if subscription.end_date < timezone.now(): return
                 if key == 'current_subscription':
                     return subscription
                 return getattr(subscription, key)
-        else if key == 'subscriptions':
+        elif key == 'subscriptions':
             return self.subscription_set
         return super(Member, self).__get(key)
 
@@ -37,10 +37,10 @@ class Subscription(models.Model):
     INTERVAL_CHOICES = ((0, 'daily'), (1, 'weekly'), (2, 'monthly'), (3, 'quarterly'), (4, 'yearly'))
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     membership_fee = models.DecimalField(max_digits=11, decimal_places=2)
-    fee_intervall = IntegerField(default=2, choices=Subscription.INTERVAL_CHOICES)
+    fee_intervall = models.IntegerField(default=2, choices=INTERVAL_CHOICES)
     begin_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
-    membership_number = IntegerField()
+    membership_number = models.IntegerField()
 
     @receiver(post_save, sender=User)
     def create_initial_user_membership(sender, instance, created, **kwargs):
@@ -60,7 +60,7 @@ class BankAccount(models.Model):
     owner = models.CharField(max_length=50)
     iban = models.CharField(max_length=32)
     bic = models.CharField(max_length=11)
-    member = models.ForeignKey(User, blank=True, null=True)
+    member = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 
 class BankTransaction(models.Model):
     """
@@ -72,8 +72,8 @@ class BankTransaction(models.Model):
     currency = models.CharField(max_length=3)
     booking_date = models.DateTimeField()
     details = models.TextField()
-    contact_account = models.ForeignKey(BankAccount)
-    member = models.ForeignKey(User, blank=True, null=True)
+    contact_account = models.ForeignKey(BankAccount, blank=True, null=True, on_delete=models.SET_NULL)
+    member = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     visible = models.BooleanField(default=True)
 
 
@@ -96,10 +96,10 @@ class CamtDocument:
         return len(self.transactions['new']) != 0
 
     def matches_current_balance(self):
-        return BankTransaction.objects.order_by('id')[0].balance['end'] == self.balance['start']
+        return BankTransaction.objects.order_by('id')[0].balance['end'] == self.balance['start'] \
             or BankTransaction.objects.count() == 0
 
-    def import(self):
+    def camt_import(self):
         assert self.matches_current_balance(), "The camt document can not be imported, its balance does not match the database"
 
         for transaction in self.transactions_new:
@@ -122,7 +122,7 @@ class CamtDocument:
             if status in ['‘PRCD’', 'OPBD']:
                 start_balance = balance['Amt']['#text']
                 start_currency = balance['Amt']['@Ccy']
-            else if status in ['CLBD', 'CLAV']:
+            elif status in ['CLBD', 'CLAV']:
                 end_balance = balance['Amt']['#text']
                 end_currency = balance['Amt']['@Ccy']
 
