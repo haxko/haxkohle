@@ -5,6 +5,7 @@ static/bundle.js
 
 # ToDo: Delete on first release
 */migrations/*
+!*/migrations/__init__.py
 
 # Django #
 *.log
