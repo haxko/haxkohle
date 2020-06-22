@@ -31,11 +31,11 @@ pip install -r requirements.txt
 
 npm install
 npm run build # or "npm run start" to autocompile if changes are present
-./manage.py makemigrations
-./manage.py migrate
 
+python3 manage.py makemigrations
+python3 manage.py migrate
 
-./manage.py runserver
+python3 manage.py runserver
 ```
 ## Usage
 
