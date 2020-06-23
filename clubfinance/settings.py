@@ -132,6 +132,22 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+BATON = {
+    'SITE_HEADER': 'Haxkohle',
+    'SITE_TITLE': 'Haxkohle',
+    'INDEX_TITLE': 'Site administration',
+    'SUPPORT_HREF': 'https://github.com/haxko/haxkohle/issues',
+    'COPYRIGHT': '', # noqa
+    'POWERED_BY': '<a href="https://haxko.space/">haxko e.V</a>',
+    'CONFIRM_UNSAVED_CHANGES': True,
+    'SHOW_MULTIPART_UPLOADING': True,
+    'ENABLE_IMAGES_PREVIEW': True,
+    'CHANGELIST_FILTERS_IN_MODAL': True,
+    'MENU_ALWAYS_COLLAPSED': False,
+    'MENU_TITLE': 'Menu',
+}
+
+
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
