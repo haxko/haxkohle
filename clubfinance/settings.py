@@ -31,10 +31,12 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.auth',
     'users.apps.UsersConfig',
     'membershipfees.apps.MembershipfeesConfig',
+    'baton',
     'django.contrib.admin',
-    'django.contrib.auth',
+    'baton.autodiscover',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
