@@ -34,6 +34,7 @@ npm run build # or "npm run start" to autocompile if changes are present
 
 python3 manage.py makemigrations
 python3 manage.py migrate
+python3 manage.py createsuperuser
 
 python3 manage.py runserver
 ```
