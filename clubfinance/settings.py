@@ -135,7 +135,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 BATON = {
     'SITE_HEADER': 'Haxkohle',
     'SITE_TITLE': 'Haxkohle',
-    'INDEX_TITLE': 'Site administration',
+    'INDEX_TITLE': 'Haxkohle admin',
     'SUPPORT_HREF': 'https://github.com/haxko/haxkohle/issues',
     'COPYRIGHT': '', # noqa
     'POWERED_BY': '<a href="https://haxko.space/">haxko e.V</a>',
@@ -145,6 +145,20 @@ BATON = {
     'CHANGELIST_FILTERS_IN_MODAL': True,
     'MENU_ALWAYS_COLLAPSED': False,
     'MENU_TITLE': 'Menu',
+    'MENU':  (
+        { 'type': 'title', 'label': 'Members and Authentication', 'default_open': True, 'children': [
+            { 'type': 'free', 'label': 'Users', 'url': '/admin/auth/user/' },
+            { 'type': 'free', 'label': 'Groups', 'url': '/admin/auth/group/' },
+            { 'type': 'free', 'label': 'Subscriptions', 'url': '/admin/users/subscription/' },
+        ] },
+        { 'type': 'title', 'label': 'Banking', 'default_open': True, 'children': [
+            { 'type': 'free', 'label': 'Import Data', 'url': '/membershipfees/admin/import_camt/' },
+            { 'type': 'free', 'label': 'Match Transactions', 'url': '/membershipfees/admin/match_transactions/' },
+            { 'type': 'free', 'label': 'Bank Accounts', 'url': '/admin/membershipfees/bankaccount/' },
+            { 'type': 'free', 'label': 'Bank Transfers', 'url': '/admin/membershipfees/banktransaction/' },
+        ] },
+    ),
+
 }
 
 
