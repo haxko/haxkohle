@@ -5,6 +5,11 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import User
 
+if hasattr(settings, "MEMBERSHIP_NUMBER_LABEL"):
+    membership_number_label = settings.MEMBERSHIP_NUMBER_LABEL
+else:
+    membership_number_label = None
+
 
 class Subscription(models.Model):
     """
@@ -18,7 +23,7 @@ class Subscription(models.Model):
     fee_intervall = models.IntegerField(default=2, choices=INTERVAL_CHOICES)
     begin_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
-    membership_number = models.IntegerField(blank=True, null=True)
+    membership_number = models.IntegerField(blank=True, null=True, verbose_name=membership_number_label)
 
     @receiver(post_save, sender=User)
     def create_initial_user_membership(sender, instance, created, **kwargs):
