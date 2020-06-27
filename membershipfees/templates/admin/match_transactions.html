@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
 {% block extrastyle %}{{ block.super }}
   <link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
@@ -19,7 +19,13 @@
 {% block nav-sidebar %}{% endblock %}
 
 {% block content %}
-<div id="admin_index"><b>ToDo:</b> Add meaningful stuff here</div>
+<div id="admin_index"><b>ToDo:</b> Add meaningful stuff here
+  <form method="post" >
+  {% csrf_token %}
+  {{ form}}
+  <input type="submit" class="btn btn-primary">
+  </form>
+</div>
 {% endblock %}
 
 {% block sidebar %}

@@ -19,7 +19,13 @@
 {% block nav-sidebar %}{% endblock %}
 
 {% block content %}
-<div id="admin_index"><b>ToDo:</b> Add meaningful stuff here</div>
+<div id="admin_index"><b>ToDo:</b> Add meaningful stuff here
+  <form method="post" >
+  {% csrf_token %}
+  {{ form}}
+  <input type="submit" class="btn btn-primary">
+  </form>
+</div>
 {% endblock %}
 
 {% block sidebar %}
