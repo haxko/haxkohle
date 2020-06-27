@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from xmltodict import parse as parsexml
 from functools import reduce
-from users.models import Member, Subscription
+from users.models import Subscription
 
 
 # BANKING
@@ -15,6 +15,9 @@ class BankAccount(models.Model):
     iban = models.CharField(max_length=32)
     bic = models.CharField(max_length=11)
     member = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return f"{self.iban}"
 
 class BankTransaction(models.Model):
     """
@@ -29,6 +32,9 @@ class BankTransaction(models.Model):
     contact_account = models.ForeignKey(BankAccount, blank=True, null=True, on_delete=models.SET_NULL)
     member = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     visible = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.id}"
 
 
 class CamtDocument:

@@ -1,9 +1,9 @@
 from django.contrib import admin
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
 from .models import *
 
 
-admin.site.unregister(Group)
-admin.site.register(Group)
-admin.site.register(Member)
-admin.site.register(Subscription)
+
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display=('membership_number', 'user', 'begin_date', 'end_date', )
+admin.site.register(Subscription, SubscriptionAdmin)

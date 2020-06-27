@@ -6,26 +6,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 
-class Member(User):
-    """
-    Proxymodel to extend the User class with some functionality to handle Subscriptions
-    """
-    class Meta:
-        proxy: True
-
-    def __get__(self, key):
-        subscription_attributes = ['current_membership_fee', 'current_begin_date', 'current_end_date', 'current_membership_number']
-        if key in subscription_attributes + ['current_subscription']:
-            for subscription in self.subscription_set:
-                if subscription.begin_date > timezone.now(): return
-                if subscription.end_date < timezone.now(): return
-                if key == 'current_subscription':
-                    return subscription
-                return getattr(subscription, key)
-        elif key == 'subscriptions':
-            return self.subscription_set
-        return super(Member, self).__get(key)
-
 class Subscription(models.Model):
     """
     A subscription is adds additional information to a member
@@ -48,3 +28,6 @@ class Subscription(models.Model):
                 membership_fee=settings.DEFAULT_MONTLY_FEE,
                 begin_date=timezone.now(),
             )
+
+    def __str__(self):
+        return f"({self.membership_number}) {self.user} "

@@ -1,13 +1,17 @@
 from django.contrib import admin
-from .models import Member, Subscription, BankAccount, BankTransaction
-
-
-admin.site.index_template = 'admin/index.html'
+from .models import Subscription, BankAccount, BankTransaction
 
 admin.site.site_header = "Haxkohle Admin"
 admin.site.site_title = "Haxkohle"
 admin.site.index_title = "Haxkohle"
 
-admin.site.register(BankAccount)
-admin.site.register(BankTransaction)
+
+class BankAccountAdmin(admin.ModelAdmin):
+    list_display=('iban', 'bic', 'member', 'owner')
+admin.site.register(BankAccount, BankAccountAdmin)
+
+
+class BankTransactionAdmin(admin.ModelAdmin):
+    list_display=('id', 'amount', 'currency', 'member', 'booking_date')
+admin.site.register(BankTransaction, BankTransactionAdmin)
 
