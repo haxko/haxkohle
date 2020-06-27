@@ -1,0 +1,26 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
+  <style rel="stylesheet" type="text/css">
+    #content #admin_index{
+      padding: 1em !important;
+    }
+  </style
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<div id="admin_index"><b>ToDo:</b> Add meaningful stuff here</div>
+{% endblock %}
+
+{% block sidebar %}
+{% endblock %}

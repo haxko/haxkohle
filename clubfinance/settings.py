@@ -152,8 +152,8 @@ BATON = {
             { 'type': 'free', 'label': 'Subscriptions', 'url': '/admin/users/subscription/' },
         ] },
         { 'type': 'title', 'label': 'Banking', 'default_open': True, 'children': [
-            { 'type': 'free', 'label': 'Import Data', 'url': '/membershipfees/admin/import_camt/' },
-            { 'type': 'free', 'label': 'Match Transactions', 'url': '/membershipfees/admin/match_transactions/' },
+            { 'type': 'free', 'label': 'Import Data', 'url': '/finance/admin/import_camt/' },
+            { 'type': 'free', 'label': 'Match Transactions', 'url': '/finance/admin/match_transactions/' },
             { 'type': 'free', 'label': 'Bank Accounts', 'url': '/admin/membershipfees/bankaccount/' },
             { 'type': 'free', 'label': 'Bank Transfers', 'url': '/admin/membershipfees/banktransaction/' },
         ] },
