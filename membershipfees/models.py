@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from xmltodict import parse as parsexml
 from functools import reduce
 from users.models import Subscription
+from django.conf import settings
 
 
 # BANKING
@@ -26,7 +27,7 @@ class BankTransaction(models.Model):
     amount = models.DecimalField(max_digits=11, decimal_places=2)
     start_balance = models.DecimalField(max_digits=11, decimal_places=2)
     end_balance = models.DecimalField(max_digits=11, decimal_places=2)
-    currency = models.CharField(max_length=3)
+    currency = models.CharField(max_length=3, default=settings.DEFAULT_CURRENCY)
     booking_date = models.DateTimeField()
     details = models.TextField()
     contact_account = models.ForeignKey(BankAccount, blank=True, null=True, on_delete=models.SET_NULL)
