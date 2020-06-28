@@ -20,11 +20,12 @@
 
 {% block content %}
 <div id="admin_index"><b>ToDo:</b> Add meaningful stuff here
-  <form method="post" >
+  <form method="post" enctype="multipart/form-data" >
   {% csrf_token %}
   {{ form}}
   <input type="submit" class="btn btn-primary">
   </form>
+  {{ file_names }}
 </div>
 {% endblock %}
 

@@ -4,7 +4,7 @@ from xmltodict import parse as parsexml
 from functools import reduce
 from users.models import Subscription
 from django.conf import settings
-
+import re
 
 # BANKING
 class BankAccount(models.Model):
@@ -12,7 +12,7 @@ class BankAccount(models.Model):
     A BankAccount is identified by its iban and bic.
     It has one owner and can be linked to a user, which can have multiple bank accounts.
     """
-    owner = models.CharField(max_length=50)
+    owner = models.CharField(max_length=255)
     iban = models.CharField(max_length=32)
     bic = models.CharField(max_length=11)
     member = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
@@ -46,15 +46,16 @@ class CamtDocument:
     """
 
     def __init__(self, camt_document, *args, **kwargs):
-        with open(camt_document, 'r') as camt:
-            data = parsexml(camt.read())['Document']['BkToCstmrAcctRpt']['Rpt']
-            self.balance = self.__parse_balance(data['Bal'])
-            self.transactions_old, self.transactions_new = self.__process_transactions(data['Ntry'])
-            self.amount = reduce(lambda t1, t2: t1.amount + t2.amount, self.transactions_new + self.transactions_old, 0)
-            assert self.balance['start'] + self.amount == self.balance['end'], 'The closing balance does not match the start balance plus transaction amount'
+        data = parsexml(camt_document)['Document']['BkToCstmrAcctRpt']['Rpt']
+        self.balance = self.__parse_balance(data['Bal'])
+        self.transactions = self.__process_transactions(data['Ntry'])
+        self.amount = 0
+        for transaction in self.transactions:
+            self.amount += transaction.amount
+
 
     def has_importable_data(self):
-        return len(self.transactions['new']) != 0
+        return len(self.transactions) != 0
 
     def matches_current_balance(self):
         return BankTransaction.objects.order_by('id')[0].balance['end'] == self.balance['start'] \
@@ -79,8 +80,7 @@ class CamtDocument:
         """
         for balance in balances:
             status = balance['Tp']['CdOrPrtry']['Cd']
-
-            if status in ['‘PRCD’', 'OPBD']:
+            if status in ['PRCD', 'OPBD']:
                 start_balance = balance['Amt']['#text']
                 start_currency = balance['Amt']['@Ccy']
             elif status in ['CLBD', 'CLAV']:
@@ -96,33 +96,33 @@ class CamtDocument:
         Returns lists for old and new of transaction objects.
         """
 
-        def get_or_create_transaction_from_entry(ntry, amount_offset):
+        def get_or_create_transaction_from_entry(ntry):
             bank_account, _ = BankAccount.objects.get_or_create(
-                iban = ntry['CdtrAcct']['Id']['IBAN'],
+                iban = ntry['NtryDtls']['TxDtls']['RltdPties']['CdtrAcct']['Id']['IBAN'],
                 bic  = ntry['NtryDtls']['TxDtls']['RltdAgts']['CdtrAgt']['FinInstnId']['BIC'],
-                defaults = {'owner': ntry['Cdtr']['Nm']}
+                defaults = {'owner': ntry['NtryDtls']['TxDtls']['RltdPties']['Cdtr']['Nm']}
             )
 
             sign = '-' if ntry['CdtDbtInd'] == 'DBIT' else ''
 
+            #assert False, ntry['BookgDt']
             fixed_transaction_details = {
                 'amount': float(sign + ntry['Amt']['#text'].strip()),
                 'currency':  ntry['Amt']['@Ccy'].strip(),
-                'booking_date': ntry['BookDt']['Dt'].strip(),
+                'booking_date': ntry['BookgDt']['Dt'].strip(),
                 'details': re.sub(r"\s+", " ", ntry['NtryDtls']['TxDtls']['RmtInf']['Ustrd'].strip().replace("\n", " ")),
                 'contact_account': bank_account,
             }
 
             modifiable_transaction_details = {}
 
-            try:
-                return BankTransaction.get(**fixed_transaction_details), False
-            except self.model.DoesNotExist:
-                return BankTransaction(**fixed_transaction_details, **modifiable_transaction_details), True
+            return BankTransaction(**fixed_transaction_details, **modifiable_transaction_details)
 
-        transactions = { 'new': [], 'old': [] }
-        for entry in entries:
-            transaction, created = get_transaction_from_ntry(entry)
-            transactions['new' if created else 'old'].append(get_transaction_from_ntry(ntry, self))
-        return transactions['old'], transactions['new']
+        transactions = []
+        if 'NtryDtls' not in entries:
+            for entry in entries:
+                transactions.append(get_or_create_transaction_from_entry(entry))
+            return transactions
+        else:
+            return [get_or_create_transaction_from_entry(entries)]
 
