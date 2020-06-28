@@ -8,7 +8,6 @@ It provides some management functions for authorized members to give them insigh
 In addition, a further planning component is planned. Its purpose is to plan transactions and especially recurring transactions.
 To forecast the financial status of the club in the future.
 
-
 ## Table of Contents
 
 - [Installation](#installation)
@@ -59,6 +58,8 @@ The major frontent packages used are [bootstrap](https://getbootstrap.com/docs/4
 
 Bankdata can be exported from your bank and imported into haxkohle using the `CAMT.052` standart.
 Which is implemented as described [here](https://www.rabobank.com/en/images/rcc-format-description-camt.052-v1.02.pdf).
+
+We furthermore plan to implement bank data download via EBICS and FinTS in the future. But for this purpose nothing is implemented yet.
 
 ## Contributing
 
