@@ -41,6 +41,10 @@ python3 manage.py runserver
 
 The project is currently in a early development state. Therefore production usage is not recommended.
 
+After install, the admin panel is available under  `/admin`, apart from that only the `/account`, `/account/register`, `/account/logout` are existent.
+Othere routes will be notet here, as they come available.
+
+
 ## Support
 
 Please [open an issue](https://github.com/haxko/haxkohle/issues/new) for support.
