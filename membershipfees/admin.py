@@ -9,13 +9,15 @@ from .forms import FileUploadForm
 from io import BytesIO
 from zipfile import ZipFile
 from .models import CamtDocument
+import hashlib
 
 admin.site.site_header = "Haxkohle Admin"
 admin.site.site_title = "Haxkohle"
 admin.site.index_title = "Haxkohle"
 
 class BankAccountAdmin(admin.ModelAdmin):
-    list_display=('iban', 'bic', 'member', 'owner')
+    list_display=('owner', 'member')
+    exclude=('id_val',)
 admin.site.register(BankAccount, BankAccountAdmin)
 
 class BankTransactionAdmin(admin.ModelAdmin):
@@ -44,9 +46,10 @@ class ImportCamt(generic_views.FormView):
         if form.is_valid():
             with ZipFile(request.FILES['file_field'].file, 'r') as zip_file:
                 for file_name in zip_file.namelist():
-                    camt_file = CamtDocument(zip_file.open(file_name).read().decode())
+                    camt_file = CamtDocument(zip_file.open(file_name).read().decode(), salt=request.POST.get("salt"))
                     break
-        return render(request, self.template_name, {'form': form, 'file_names': len(camt_file.transactions)})
+            return render(request, self.template_name, {'form': form, 'file_names': len(camt_file.transactions)})
+        return render(request, self.template_name, {'form': form })
 
 
 @method_decorator(user_passes_test(lambda user: user.is_active and user.is_superuser, '/admin/'), name='dispatch')

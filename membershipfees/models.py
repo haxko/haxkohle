@@ -4,6 +4,7 @@ from xmltodict import parse as parsexml
 from functools import reduce
 from users.models import Subscription
 from django.conf import settings
+import hashlib
 import re
 
 # BANKING
@@ -13,12 +14,11 @@ class BankAccount(models.Model):
     It has one owner and can be linked to a user, which can have multiple bank accounts.
     """
     owner = models.CharField(max_length=255)
-    iban = models.CharField(max_length=32)
-    bic = models.CharField(max_length=11)
+    id_val = models.CharField(max_length=32)
     member = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return f"{self.iban}"
+        return f"Bank Account: {self.owner}"
 
 class BankTransaction(models.Model):
     """
@@ -35,7 +35,7 @@ class BankTransaction(models.Model):
     visible = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.id}"
+        return f"BankTransaction: {self.id}"
 
 
 class CamtDocument:
@@ -45,7 +45,8 @@ class CamtDocument:
     The CamtDocument is not saved to the database.
     """
 
-    def __init__(self, camt_document, *args, **kwargs):
+    def __init__(self, camt_document, salt, *args, **kwargs):
+        self.salt = salt
         data = parsexml(camt_document)['Document']['BkToCstmrAcctRpt']['Rpt']
         self.balance = self.__parse_balance(data['Bal'])
         self.transactions = self.__process_transactions(data['Ntry'])
@@ -96,10 +97,13 @@ class CamtDocument:
         Returns lists for old and new of transaction objects.
         """
 
-        def get_or_create_transaction_from_entry(ntry):
+        def get_or_create_transaction_from_entry(ntry, salt):
+
+            id_hash_val = ntry['NtryDtls']['TxDtls']['RltdPties']['CdtrAcct']['Id']['IBAN'] \
+                    + ntry['NtryDtls']['TxDtls']['RltdAgts']['CdtrAgt']['FinInstnId']['BIC'] \
+                    + salt
             bank_account, _ = BankAccount.objects.get_or_create(
-                iban = ntry['NtryDtls']['TxDtls']['RltdPties']['CdtrAcct']['Id']['IBAN'],
-                bic  = ntry['NtryDtls']['TxDtls']['RltdAgts']['CdtrAgt']['FinInstnId']['BIC'],
+                id_val = hashlib.sha224( id_hash_val.encode('utf-8') ).hexdigest(),
                 defaults = {'owner': ntry['NtryDtls']['TxDtls']['RltdPties']['Cdtr']['Nm']}
             )
 
@@ -121,8 +125,8 @@ class CamtDocument:
         transactions = []
         if 'NtryDtls' not in entries:
             for entry in entries:
-                transactions.append(get_or_create_transaction_from_entry(entry))
+                transactions.append(get_or_create_transaction_from_entry(entry, self.salt))
             return transactions
         else:
-            return [get_or_create_transaction_from_entry(entries)]
+            return [get_or_create_transaction_from_entry(entries, self.salt)]
 
