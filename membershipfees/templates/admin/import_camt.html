@@ -14,7 +14,14 @@
 
 {% block bodyclass %}{{ block.super }} dashboard{% endblock %}
 
-{% block breadcrumbs %}{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="/admin/">Home</a>
+› <a href="/admin/membershipfees/">Membershipfees</a>
+› Upload CAMT0.52
+</div>
+
+{% endblock %}
 
 {% block nav-sidebar %}{% endblock %}
 
