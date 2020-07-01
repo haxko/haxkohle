@@ -45,9 +45,10 @@ After install, the admin panel is available under  `/admin`, apart from that onl
 Othere routes will be notet here, as they come available.
 
 For more security a password is required in addition to the user password to upload CAMT archives. This is needed to secure hashed user data.
-The default development passwort is `haxkohle`. 
-It is strongly recommended, to change this passwort in production. Which can be done in `clubfinance/settings.py`, using a sha224 hash of the upload password.
-
+The default development passwort is `haxkohle`.
+It is strongly recommended, to change this passwort in production.
+Therefore you need to set its validation-hash in `clubfinance/settings.py`.
+To generate the validation hash you can use this [CyberChef Recipe](https://gchq.github.io/CyberChef/#recipe=Encode_text('UTF-8%20(65001)')SHA2('224')).
 
 ## Support
 
