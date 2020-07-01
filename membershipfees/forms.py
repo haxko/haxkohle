@@ -12,5 +12,5 @@ def validate_camt_upload_pass(value):
         )
 
 class FileUploadForm(forms.Form):
-    salt = forms.CharField(widget=forms.PasswordInput(), validators=[validate_camt_upload_pass])
     file_field = forms.FileField(label="Upload Camt052-Archive")
+    salt = forms.CharField(widget=forms.PasswordInput(), validators=[validate_camt_upload_pass])
