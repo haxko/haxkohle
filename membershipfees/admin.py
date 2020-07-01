@@ -15,6 +15,10 @@ admin.site.site_header = "Haxkohle Admin"
 admin.site.site_title = "Haxkohle"
 admin.site.index_title = "Haxkohle"
 
+
+
+
+
 class BankAccountAdmin(admin.ModelAdmin):
     list_display=('owner', 'member')
     exclude=('id_val',)
@@ -23,13 +27,6 @@ admin.site.register(BankAccount, BankAccountAdmin)
 class BankTransactionAdmin(admin.ModelAdmin):
     list_display=('id', 'amount', 'currency', 'member', 'booking_date')
 admin.site.register(BankTransaction, BankTransactionAdmin)
-
-def stream_gzip_decompress(stream):
-    dec = zlib.decompressobj(32 + zlib.MAX_WBITS)  # offset 32 to skip the header
-    for chunk in stream:
-        rv = dec.decompress(chunk)
-        if rv:
-            yield rv
 
 @method_decorator(user_passes_test(lambda user: user.is_active and user.is_superuser, '/admin/'), name='dispatch')
 class ImportCamt(generic_views.FormView):
