@@ -44,6 +44,10 @@ The project is currently in a early development state. Therefore production usag
 After install, the admin panel is available under  `/admin`, apart from that only the `/account`, `/account/register`, `/account/logout` are existent.
 Othere routes will be notet here, as they come available.
 
+For more security a password is required in addition to the user password to upload CAMT archives. This is needed to secure hashed user data.
+The default development passwort is `haxkohle`. 
+It is strongly recommended, to change this passwort in production. Which can be done in `clubfinance/settings.py`, using a sha224 hash of the upload password.
+
 
 ## Support
 
