@@ -48,7 +48,7 @@ class ImportCamt(generic_views.FormView):
                 for file_name in zip_file.namelist():
                     camt_file = CamtDocument(zip_file.open(file_name).read().decode(), salt=request.POST.get("salt"))
                     break
-            return render(request, self.template_name, {'form': form, 'file_names': len(camt_file.transactions)})
+            return render(request, self.template_name, {'form': form })
         return render(request, self.template_name, {'form': form })
 
 
